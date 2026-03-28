@@ -68,7 +68,7 @@
 <div id="loading"><div id="loading-ring"></div><div id="loading-txt">Building…</div></div>
 
 <div id="hud">
-  <div id="title">CNN · Depth Stack</div>
+  <div id="title">MLP · Depth Stack</div>
   <div id="step-counter"></div>
   <div id="layer-lbl"><div id="lname">–</div><div id="layer-sub">–</div></div>
   <div id="dots"></div>
@@ -133,15 +133,12 @@ const FONT={
 /* ══════════════════════════════════════════════════════════
    LAYERS
 ══════════════════════════════════════════════════════════ */
+// MLP model: Input → FC1 (512) → FC2 (256) → Output (10)
 const LAYERS=[
-
-    {label:'Input',  sub:'784 pixels', imgUrl:()=>`${API}/input/input.png?t=${Date.now()}`, col:[0.0,0.72,1.0], isFC:true, fcN:64},
-
-    {label:'FC 1',   sub:'512 neurons', imgUrl:()=>`${API}/outputs/1_fc1.png?t=${Date.now()}`, col:[0.88,0.0,0.72], isFC:true, fcN:48},
-
-    {label:'FC 2',   sub:'256 neurons', imgUrl:()=>`${API}/outputs/2_fc2.png?t=${Date.now()}`, col:[1.0,0.0,0.38], isFC:true, fcN:32},
-
-    {label:'Output', sub:'10 class scores', imgUrl:()=>`${API}/outputs/3_fc3.png?t=${Date.now()}`, col:[1.0,0.28,0.0], isFC:true, fcN:10}
+  {label:'Input',  sub:'28 × 28 pixels',  imgUrl:()=>`${API}/input/input.png?t=${Date.now()}`,       col:[0.0,0.72,1.0], sw:28,sh:28, show:1, gCols:1,gRows:1},
+  {label:'FC 1',   sub:'512 neurons',     imgUrl:()=>`${API}/outputs/1_fc1.png?t=${Date.now()}`,     col:[0.88,0.0,0.72],isFC:true,fcN:48},
+  {label:'FC 2',   sub:'256 neurons',     imgUrl:()=>`${API}/outputs/2_fc2.png?t=${Date.now()}`,     col:[1.0,0.0,0.38], isFC:true,fcN:32},
+  {label:'Output', sub:'10 class scores', imgUrl:()=>`${API}/outputs/3_fc3.png?t=${Date.now()}`,     col:[1.0,0.28,0.0], isFC:true,fcN:10},
 ];
 
 /* ══════════════════════════════════════════════════════════
@@ -150,7 +147,7 @@ const LAYERS=[
 const SCALE=5.5/28,ACTIVE_Z=0,SPAWN_Z=15;
 const PUSH_STEP=12,FC_PUSH_STEP=4.8;  // FC cluster 60% tighter
 const LERP_SPEED=6.0,PLANE_GAP=0.22;
-// Voxel lives exactly where the Output layer (step 7) sits when active
+// Voxel lives exactly where the Output layer (step 3) sits when active
 const VOXEL_Z=ACTIVE_Z;   // z = 0
 
 function blockW(L){return L.sw?L.sw*SCALE:0.55;}
@@ -205,16 +202,12 @@ function easeExpoOut(x){return x===1?1:1-Math.pow(2,-10*x);}
 /* ══════════════════════════════════════════════════════════
    CAMERA
 ══════════════════════════════════════════════════════════ */
-// Close-up per layer [px,py,pz, lx,ly,lz]
+// Close-up per layer [px,py,pz, lx,ly,lz]  — 4 layers for MLP
 const CAM_CLOSEUP=[
-  [15,8,11,   0, 0.5,-1],  // 0 Input
-  [13,7, 9,  -1, 0.4,-1],  // 1 Conv1
-  [11,6, 8,   1, 0.4,-1],  // 2 CStride1
-  [ 9,5, 7,  -1, 0.3,-1],  // 3 Conv2
-  [ 8,4, 6,   0, 0.3,-1],  // 4 CStride2
-  [ 4,1.5,5, -0.5,0.1,0],  // 5 FC1  — deep dive
-  [ 3,1.5,4,  0.5,0.1,0],  // 6 FC2  — snap right
-  [ 2,1,  3,  0,  0,  0],  // 7 Output — fly through
+  [15, 8, 14,   0, 0.5, -1],   // 0 Input     — wide overview, warm angle
+  [ 5, 2,  7,  -0.5, 0.2, 0],  // 1 FC1       — orbit left, medium close
+  [ 4, 2,  6,   0.5, 0.2, 0],  // 2 FC2       — orbit right, tighter
+  [ 2, 1,  4,   0,   0,   0],  // 3 Output    — fly through, extreme close
 ];
 const OV_POS =new THREE.Vector3(20,10,25);
 const OV_LOOK=new THREE.Vector3(0,0,-20);
@@ -478,12 +471,12 @@ function showLayer(step){
   targetZ[step]=ACTIVE_Z;targetOp[step]=1.0;
   grp.visible=true;
 
-  for(let j=0;j<step;j++){
-    let z=ACTIVE_Z;
-    for(let k=step;k>j;k--){const bFC=(k>=5)&&(k-1>=5);z-=bFC?FC_PUSH_STEP:PUSH_STEP;}
-    targetZ[j]=z;
-    targetOp[j]=depthOpacity(step-j);
-  }
+    for(let j=0;j<step;j++){
+      // All MLP layers are FC — use consistent tight FC spacing throughout
+      const stepsBack=step-j;
+      targetZ[j]=ACTIVE_Z - stepsBack*FC_PUSH_STEP;
+      targetOp[j]=depthOpacity(stepsBack);
+    }
 
   const kf=CAM_CLOSEUP[step],isFC=!!LAYERS[step].isFC;
   moveCam(new THREE.Vector3(kf[0],kf[1],kf[2]),new THREE.Vector3(kf[3],kf[4],kf[5]),
