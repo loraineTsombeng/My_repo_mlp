@@ -7,7 +7,7 @@ from torchvision import transforms
 import cv2
 import os
 
-from torchvision.datasets import EMNIST
+from torchvision.datasets import MNIST
 from torchvision import transforms
 
 # EMNIST(
@@ -35,6 +35,7 @@ def load_mnist_cnn():
 
     return images, labels
 
+
 def load_emnist_cnn(train=True):
 # load EMNIST balanced split data from torchvision.datasets
     transform = transforms.Compose([
@@ -43,7 +44,7 @@ def load_emnist_cnn(train=True):
         transforms.Lambda(lambda x: torch.flip(x, [2]))                         # flip horizontal
     ])
 
-    dataset = EMNIST(
+    dataset = MNIST(
         root="data",
         split="balanced",
         train=train,
@@ -51,12 +52,15 @@ def load_emnist_cnn(train=True):
         transform=transform
     )                           # dataset of PIL images and labels
 
+    mapping = load_emnist_mapping()
     images = []
     labels = []
-
     for img, label in dataset:
-        images.append(img.numpy())  # (1,28,28)
-        labels.append(label)        # int (0-46)
+        if label in mapping:       # Label existiert im Mapping
+            char = mapping[label]
+            if char.isdigit():     # nur Zahlen behalten
+                images.append(img.numpy())
+                labels.append(int(char))
 
     images = np.stack(images).astype("float32")   # (N,1,28,28)
     labels = np.array(labels, dtype=np.int64)

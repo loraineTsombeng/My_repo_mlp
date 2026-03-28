@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 
-from data import batch_generator_augmented, load_emnist_cnn, load_emnist_mapping, prep_image, show_image
+from data import batch_generator_augmented, load_mnist_cnn, load_emnist_mapping, prep_image, show_image
 
 # #test loading data
 # # get mnist training data
@@ -20,7 +20,7 @@ def train(model, device, loss_fn, optimizer, num_epochs, batch_size, modelName="
 # Train the model
     
     # get mnist training data
-    images_cnn, labels_cnn = load_emnist_cnn()
+    images_cnn, labels_cnn = load_mnist_cnn()
     # print(images_cnn.shape)  # (112800, 1, 28, 28)
     # print(labels_cnn.shape)  # (112800,)
 
@@ -112,7 +112,7 @@ def test(model, device):
 # Test the model
 
     # get mnist test data
-    images_cnn, labels_cnn = load_emnist_cnn(train=False)
+    images_cnn, labels_cnn = load_mnist_cnn(train=False)
     #print(images_cnn.shape)  # (18800, 1, 28, 28)
     #print(labels_cnn.shape)  # (18800,)
 

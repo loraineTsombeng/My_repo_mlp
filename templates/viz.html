@@ -134,14 +134,14 @@ const FONT={
    LAYERS
 ══════════════════════════════════════════════════════════ */
 const LAYERS=[
-  {label:'Input',        sub:'1 × 28 × 28',imgUrl:()=>`${API}/input/input.png?t=${Date.now()}`,sw:28,sh:28,col:[0.0,0.72,1.0]},
-  {label:'Conv 1',       sub:'16 × 28 × 28',imgUrl:()=>`${API}/outputs/1_conv1.png?t=${Date.now()}`,sw:28,sh:28,col:[0.0,0.55,1.0],gCols:8,gRows:2,show:16},
-  {label:'ConvStride 1', sub:'32 × 14 × 14',imgUrl:()=>`${API}/outputs/2_convStride1.png?t=${Date.now()}`,sw:14,sh:14,col:[0.12,0.38,1.0],gCols:8,gRows:4,show:16},
-  {label:'Conv 2',       sub:'64 × 14 × 14',imgUrl:()=>`${API}/outputs/3_conv2.png?t=${Date.now()}`,sw:14,sh:14,col:[0.36,0.18,1.0],gCols:8,gRows:8,show:16},
-  {label:'ConvStride 2', sub:'128 × 7 × 7',imgUrl:()=>`${API}/outputs/4_convStride2.png?t=${Date.now()}`,sw:7,sh:7,col:[0.62,0.04,1.0],gCols:8,gRows:16,show:16},
-  {label:'FC 1',         sub:'512 neurons',imgUrl:()=>`${API}/outputs/5_fc1.png?t=${Date.now()}`,col:[0.88,0.0,0.72],isFC:true,fcN:48},
-  {label:'FC 2',         sub:'256 neurons',imgUrl:()=>`${API}/outputs/6_fc2.png?t=${Date.now()}`,col:[1.0,0.0,0.38],isFC:true,fcN:32},
-  {label:'Output',       sub:'47 class scores',imgUrl:()=>`${API}/outputs/7_fc3.png?t=${Date.now()}`,col:[1.0,0.28,0.0],isFC:true,fcN:47},
+
+    {label:'Input',  sub:'784 pixels', imgUrl:()=>`${API}/input/input.png?t=${Date.now()}`, col:[0.0,0.72,1.0], isFC:true, fcN:64},
+
+    {label:'FC 1',   sub:'512 neurons', imgUrl:()=>`${API}/outputs/1_fc1.png?t=${Date.now()}`, col:[0.88,0.0,0.72], isFC:true, fcN:48},
+
+    {label:'FC 2',   sub:'256 neurons', imgUrl:()=>`${API}/outputs/2_fc2.png?t=${Date.now()}`, col:[1.0,0.0,0.38], isFC:true, fcN:32},
+
+    {label:'Output', sub:'10 class scores', imgUrl:()=>`${API}/outputs/3_fc3.png?t=${Date.now()}`, col:[1.0,0.28,0.0], isFC:true, fcN:10}
 ];
 
 /* ══════════════════════════════════════════════════════════
