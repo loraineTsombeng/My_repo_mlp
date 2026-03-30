@@ -18,8 +18,8 @@ from PIL import Image
 
 # ── torch / model imports ────────────────────────────────────────────────────
 import torch
-from mlp import MLP             
-from data import (get_activation,save_activations, normalize_per_channel)
+from mlp_architecture import MLP
+from data import (get_activation,save_activations)
 
 # ── app setup ────────────────────────────────────────────────────────────────
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -33,7 +33,7 @@ os.makedirs(INPUT_DIR,  exist_ok=True)
 # ── load model once at startup ───────────────────────────────────────────────
 device  = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = MLP().to(device)           
-MODEL_PATH = "mlp_emnist.pth"
+MODEL_PATH = "mlp_mnist.pth"
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(
         f"Trained model not found at '{MODEL_PATH}'. "
@@ -46,7 +46,7 @@ model.eval()
 # Build MNIST mapping with file.
 # MNIST has 10 classes: digits 0-9
 def _build_mnist_mapping():  
-    path = r"data/EMNIST/raw/mnist-mapping.txt"
+    path = r"data/MNIST/raw/mnist-mapping.txt"
     if not os.path.exists(path):
         # Fallback keeps the app running even if the MNIST raw mapping file is absent.
         print(f"Warning: mapping file not found at '{path}'. Using index labels instead.")
