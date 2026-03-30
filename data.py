@@ -11,9 +11,6 @@ from torchvision.datasets import MNIST
 from torchvision import transforms
 
 
-import numpy as np
-import pathlib
-
 def load_mnist_cnn(train):
     # load MNIST data from local npz file
     path = pathlib.Path(__file__).parent.absolute() / "data" / "mnist.npz"
@@ -36,38 +33,9 @@ def load_mnist_cnn(train):
 
     return images, labels
 
-def load_emnist_cnn(train):
-# load EMNIST balanced split data from torchvision.datasets
-    transform = transforms.Compose([
-        transforms.ToTensor(),                                                  # -> [0,1], shape (1,28,28)
-        transforms.Lambda(lambda x: torch.rot90(x, 3, [1,2]).contiguous()),     # rotate 3x90 degrees = -90 degrees
-        transforms.Lambda(lambda x: torch.flip(x, [2]))                         # flip horizontal
-    ])
 
-    dataset = MNIST(
-        root="data",
-        split="balanced",
-        train=train,
-        download=True,
-        transform=transform
-    )                           # dataset of PIL images and labels
 
-    mapping = load_emnist_mapping()
-    images = []
-    labels = []
-    for img, label in dataset:
-        if label in mapping:       # Label existiert im Mapping
-            char = mapping[label]
-            if char.isdigit():     # nur Zahlen behalten
-                images.append(img.numpy())
-                labels.append(int(char))
-
-    images = np.stack(images).astype("float32")   # (N,1,28,28)
-    labels = np.array(labels, dtype=np.int64)
-
-    return images, labels
-
-def load_emnist_mapping(path = r"data/EMNIST/raw/emnist-balanced-mapping.txt"):
+def load_emnist_mapping(path = r"data/MNIST/raw/mnist-mapping.txt"):
     mapping = {}
 
     with open(path) as f:

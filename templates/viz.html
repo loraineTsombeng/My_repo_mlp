@@ -96,7 +96,7 @@
   <div id="hdr">
     <div class="dot"></div>
     <h1>MLP Neural Visualizer</h1>
-    <span id="arch-label">784 → 512 → 256 → 47 &nbsp;|&nbsp; PyTorch</span>
+    <span id="arch-label">784 → 512 → 256 → 10 &nbsp;|&nbsp; PyTorch</span>
   </div>
   <div id="body">
     <div id="left">
@@ -113,7 +113,7 @@
       <div id="act-section">
         <div class="act-row"><span style="font-size:10px;color:var(--label)">FC1 &nbsp;(512)</span><canvas id="act1" height="14"></canvas></div>
         <div class="act-row"><span style="font-size:10px;color:var(--label)">FC2 &nbsp;(256)</span><canvas id="act2" height="14"></canvas></div>
-        <div class="act-row"><span style="font-size:10px;color:var(--label)">Output (47)</span><canvas id="act3" height="14"></canvas></div>
+        <div class="act-row"><span style="font-size:10px;color:var(--label)">Output (10)</span><canvas id="act3" height="14"></canvas></div>
       </div>
 
       <button id="back-btn" onclick="window.location.href='/'">← Draw Again</button>
@@ -131,7 +131,7 @@
         <div class="ll"><b>INPUT</b>784 units</div>
         <div class="ll"><b>FC 1</b>512 neurons</div>
         <div class="ll"><b>FC 2</b>256 neurons</div>
-        <div class="ll"><b>OUTPUT</b>47 classes</div>
+        <div class="ll"><b>OUTPUT</b>10 classes</div>
       </div>
       <div id="hint">drag · scroll · dblclick reset</div>
     </div>
@@ -538,8 +538,8 @@ function applyData(stored){
   const px=stored.raw_pixels||new Float32Array(784).fill(0);
   const h1=stored.raw_h1||new Float32Array(512).fill(0);
   const h2=stored.raw_h2||new Float32Array(256).fill(0);
-  const outFull=stored.raw_h3||new Float32Array(47).fill(0);
-  const probs=stored.probabilities||new Float32Array(47).fill(0);
+  const outFull=stored.raw_h3||new Float32Array(10).fill(0);
+  const probs=stored.probabilities||new Float32Array(10).fill(0);
   const predChar=stored.prediction||'?';
   const labelIndex=stored.label_index||0;
 
@@ -561,7 +561,7 @@ function applyData(stored){
   const confList=document.getElementById('conf-list');
   confList.innerHTML='';
   let sortedProbs=[...probs].map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p);
-  if(sortedProbs.length===0){for(let i=0;i<47;i++)sortedProbs.push({p:i===0?1:0,i});}
+  if(sortedProbs.length===0){for(let i=0;i<10;i++)sortedProbs.push({p:i===0?1:0,i});}
 
   sortedProbs.forEach(item=>{
     const i=item.i;const row=document.createElement('div');row.className='cr';

@@ -17,5 +17,5 @@ class MLP(nn.Module):
 
     def forward(self, x):
         x = self.flatten(x)   # (B,1,28,28) → (B,784)
-        x = self.fc(x)        # → (B,47)
+        x = self.fc(x)        # → (B,10)
         return x

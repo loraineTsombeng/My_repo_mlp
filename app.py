@@ -1,6 +1,6 @@
 """
-app.py  –  Flask backend for the CNN drawing classifier
-Drop this file into the root of your project (next to myCnn3.py, run.py, etc.)
+app.py  –  Flask backend for the MLP drawing classifier
+Drop this file into the root of your project 
 then run:  python app.py
 """
 
@@ -18,12 +18,8 @@ from PIL import Image
 
 # ── torch / model imports ────────────────────────────────────────────────────
 import torch
-#from myCnn3 import ConvNet     #hier
-from mlp import MLP             #hier
-from data import (
-    get_activation,
-    save_activations, normalize_per_channel
-)
+from mlp import MLP             
+from data import (get_activation,save_activations, normalize_per_channel)
 
 # ── app setup ────────────────────────────────────────────────────────────────
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -36,10 +32,7 @@ os.makedirs(INPUT_DIR,  exist_ok=True)
 
 # ── load model once at startup ───────────────────────────────────────────────
 device  = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#model   = ConvNet().to(device)    #hier
-model = MLP().to(device)           #hier
-
-#MODEL_PATH = "EMNIST-balanced-CNN.pth"
+model = MLP().to(device)           
 MODEL_PATH = "mlp_emnist.pth"
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(
@@ -50,16 +43,14 @@ if not os.path.exists(MODEL_PATH):
 model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
 model.eval()
 
-# Build EMNIST balanced mapping without needing any file.
-# EMNIST balanced has 47 classes: digits 0-9, then uppercase A-Z
-# then lowercase letters that differ from their uppercase: a b d e f g h i j k l m n p q r t u v x y z
-
-def _build_emnist_mapping():  #Die Funktion habe total verändert nach Herr Schaefer
-    path = r"data/EMNIST/raw/emnist-balanced-mapping.txt"
+# Build MNIST mapping with file.
+# MNIST has 10 classes: digits 0-9
+def _build_mnist_mapping():  
+    path = r"data/EMNIST/raw/mnist-mapping.txt"
     if not os.path.exists(path):
-        # Fallback keeps the app running even if the EMNIST raw mapping file is absent.
+        # Fallback keeps the app running even if the MNIST raw mapping file is absent.
         print(f"Warning: mapping file not found at '{path}'. Using index labels instead.")
-        return {i: str(i) for i in range(47)}
+        return {i: str(i) for i in range(10)}
 
     mapping = {}
     with open(path) as f:
@@ -69,21 +60,10 @@ def _build_emnist_mapping():  #Die Funktion habe total verändert nach Herr Scha
 
     return mapping
 
-mapping = _build_emnist_mapping()
+mapping = _build_mnist_mapping()
 activations = {}
 
-# register forward hooks once
-"""
-hooks = {
-    "conv1":       model.conv1,
-    "convStride1": model.convStride1,
-    "conv2":       model.conv2,
-    "convStride2": model.convStride2,
-    "fc1":         model.fc1,
-    "fc2":         model.fc2,
-    "fc3":         model.fc3,
-}
-"""      
+# register forward hooks once     
 hooks = {
     "fc1": model.fc[0],  # Linear 784→512    
     "fc2": model.fc[2],  # Linear 512→256
@@ -114,7 +94,7 @@ def preprocess_b64(b64_string: str) -> torch.Tensor:
 
     # save the 28×28 input for debugging / display
     #scaled = (arr[0, 0] * 255).astype(np.uint8)
-    scaled = (arr[0] * 255).astype(np.uint8)          # Zum Speichern: wieder 28x28 für MLP
+    scaled = (arr[0] * 255).astype(np.uint8)                 # saving: back to 28x28 for MLP
     Image.fromarray(scaled).save(os.path.join(INPUT_DIR, "input.png"))
 
     return torch.from_numpy(arr).float().to(device)
@@ -169,17 +149,6 @@ def predict():
         probs = torch.nn.functional.softmax(output, dim=1).squeeze().tolist()
 
         # save activation visualisations
-        """
-        label_map = [
-            ("1_conv1",       "conv1"),
-            ("2_convStride1", "convStride1"),
-            ("3_conv2",       "conv2"),
-            ("4_convStride2", "convStride2"),
-            ("5_fc1",         "fc1"),
-            ("6_fc2",         "fc2"),
-            ("7_fc3",         "fc3"),
-        ]
-        """
         label_map = [("1_fc1", "fc1"),("2_fc2", "fc2"),("3_fc3", "fc3"),]  #für MLP
         for file_label, act_key in label_map:
             if act_key in activations:

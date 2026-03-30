@@ -3,18 +3,6 @@ import matplotlib.pyplot as plt
 
 from data import batch_generator_augmented, load_mnist_cnn, load_emnist_mapping, prep_image, show_image
 
-# #test loading data
-# # get mnist training data
-# images_cnn, labels_cnn = load_emnist_cnn()
-# # print(images_cnn.shape)  # (112800, 1, 28, 28)
-# # # print(labels_cnn.shape)  # (112800,)
-# mapping = load_emnist_mapping()
-
-# for i in range(20):
-#     print(f"Label: {mapping[labels_cnn[i]]}")
-#     show_image(images_cnn[i])  # show the first image in the dataset
-
-
 
 def train(model, device, loss_fn, optimizer, num_epochs, batch_size, modelName="cnn"):
 # Train the model
@@ -87,25 +75,6 @@ def plot_metrics(losses, accuracies, num_epochs):
     plt.title("Training Accuracy")
     plt.show()
 
-def run(model, device, image_path):
-# predict label for a single image
-
-    # Test with a single image
-    image = prep_image(image_path)
-    if image is None:
-        print("Failed to preprocess image.")
-        return None
-    
-    #show_image(image[0])  # show the preprocessed image
-
-    model.eval()
-    with torch.no_grad():
-        image = torch.from_numpy(image).float().to(device)  # (1, 1, 28, 28)
-        # run: flatten images
-        images = images.view(images.size(0), -1)
-        output = model(image)
-        pred = torch.argmax(output, dim=1)
-        return pred.item(), model
 
 
 def test(model, device):
