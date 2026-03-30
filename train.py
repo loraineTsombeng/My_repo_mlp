@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 
 
-from mlp_architecture import MLP    ###ich habe eingefuegt
+from mlp_architecture import MLP 
 from mlp import test, train, plot_metrics
 
 # Device configuration
