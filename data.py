@@ -60,7 +60,7 @@ def batch_generator_augmented(images, labels, batch_size=64, shuffle=True, augme
         yield batch_imgs, batch_lbls
 
 def get_activation(activations, name):
-    def hook(output):
+    def hook(model, input, output):
         activations[name] = output.detach()
     return hook
 
