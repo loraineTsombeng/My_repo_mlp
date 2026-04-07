@@ -582,14 +582,26 @@ function applyData(stored){
   drawActBar('act3',outn);
 }
 
-function loadAndApplyData(){
-  let stored=null;
-  try{const raw=localStorage.getItem('mlp_last_result'); if(raw) stored=JSON.parse(raw);}catch(e){}
-  if(stored) applyData(stored);
+// ─── Cross-device sync: poll /latest every 1.5 s ───────────────────────────
+// Works across devices — phone draws, TV/laptop shows viz in real time.
+let lastKnownTs = 0;
+
+async function pollLatest() {
+  try {
+    const res  = await fetch('/latest');
+    const data = await res.json();
+    // data.ts is a Unix timestamp set by app.py on each new prediction
+    if (data && data.ts && data.ts !== lastKnownTs) {
+      lastKnownTs = data.ts;
+      applyData(data);
+    }
+  } catch(e) {
+    // server unreachable — silently retry
+  }
+  setTimeout(pollLatest, 1500);
 }
 
-window.addEventListener('storage',e=>{if(e.key==='mlp_last_result')loadAndApplyData();});
-loadAndApplyData();
+pollLatest();   // start polling immediately
 
 // ─── Camera orbit ───────────────────────────────────────────────────────────
 let theta=0.12,phi=0.06,radius=42,drag=false,autoRot=true,prevM={x:0,y:0};

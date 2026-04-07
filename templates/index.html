@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>MLP Classifier</title>
   <style>
-    /* ── reset & tokens ──────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -19,7 +18,7 @@
       --muted:     #8888aa;
       --danger:    #f56565;
       --radius:    14px;
-      --canvas-px: min(340px, 90vw);
+      --canvas-px: clamp(270px, 34vw, 380px);
     }
 
     body {
@@ -27,18 +26,18 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100dvh;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 16px 40px;
-      gap: 20px;
+      padding: max(14px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+      gap: clamp(12px, 2.5vw, 20px);
     }
 
-    /* ── header ──────────────────────────────────────────────────── */
     header {
       text-align: center;
       width: 100%;
-      max-width: 720px;
+      max-width: 980px;
     }
     header h1 {
       font-size: clamp(1.4rem, 5vw, 2rem);
@@ -55,17 +54,15 @@
       margin-top: 4px;
     }
 
-    /* ── main card ───────────────────────────────────────────────── */
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px;
+      padding: clamp(14px, 2vw, 22px);
       width: 100%;
-      max-width: 720px;
+      max-width: 980px;
     }
 
-    /* ── model selector ──────────────────────────────────────────── */
     .model-row {
       display: flex;
       flex-wrap: wrap;
@@ -91,18 +88,27 @@
       background: rgba(124,106,247,.1);
     }
 
-    /* ── two-column layout ───────────────────────────────────────── */
     .cols {
       display: grid;
-      grid-template-columns: var(--canvas-px) 1fr;
-      gap: 20px;
+      grid-template-columns: minmax(260px, var(--canvas-px)) minmax(0, 1fr);
+      gap: clamp(14px, 2.2vw, 24px);
       align-items: start;
     }
-    @media (max-width: 560px) {
+    @media (max-width: 980px) {
       .cols { grid-template-columns: 1fr; }
+      .canvas-wrap { align-items: center; }
+      .canvas-label { align-self: flex-start; }
+      #drawCanvas {
+        width: min(460px, 100%);
+        height: min(460px, 100%);
+      }
+      .result-panel {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+      }
     }
 
-    /* ── canvas wrapper ──────────────────────────────────────────── */
     .canvas-wrap {
       display: flex;
       flex-direction: column;
@@ -117,6 +123,7 @@
     #drawCanvas {
       width:  var(--canvas-px);
       height: var(--canvas-px);
+      max-width: 100%;
       border-radius: 10px;
       border: 2px solid var(--border);
       background: #ffffff;
@@ -131,6 +138,7 @@
     .btn {
       flex: 1;
       padding: 12px;
+      min-height: 44px;
       border-radius: 10px;
       border: none;
       font-size: 0.95rem;
@@ -152,7 +160,6 @@
     }
     .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
 
-    /* ── result panel ────────────────────────────────────────────── */
     .result-panel {
       display: flex;
       flex-direction: column;
@@ -181,7 +188,6 @@
       margin-top: 6px;
     }
 
-    /* spinner */
     .spinner {
       width: 36px; height: 36px;
       border: 3px solid var(--border);
@@ -193,7 +199,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* status */
     .status {
       font-size: 0.78rem;
       color: var(--muted);
@@ -202,7 +207,6 @@
     }
     .status.error { color: var(--danger); }
 
-    /* ── activation viewer ───────────────────────────────────────── */
     .section-title {
       font-size: 0.75rem;
       color: var(--muted);
@@ -243,6 +247,7 @@
       justify-content: center;
       align-items: center;
       min-height: 120px;
+      overflow: auto;
     }
     #activationImg {
       max-width: 100%;
@@ -255,7 +260,6 @@
       font-size: 0.8rem;
     }
 
-    /* ── 3D viz teaser ───────────────────────────────────────────── */
     .viz-teaser {
       margin-top: 24px;
       padding: 16px;
@@ -266,6 +270,88 @@
       font-size: 0.82rem;
     }
     .viz-teaser span { color: var(--accent); font-weight: 600; }
+
+    /* Viz link copy box */
+    .viz-link-box {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      word-break: break-all;
+    }
+    .viz-link-box a {
+      color: var(--accent2);
+      text-decoration: none;
+      flex: 1;
+    }
+    .viz-link-box a:hover { text-decoration: underline; }
+    .copy-btn {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+    .copy-btn:hover { color: var(--accent2); border-color: var(--accent2); }
+
+    @media (max-width: 640px) {
+      body {
+        padding: max(10px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+      }
+      .model-row {
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .model-btn {
+        min-height: 40px;
+      }
+      .canvas-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+      .btn {
+        width: 100%;
+        min-height: 48px;
+        font-size: 1rem;
+      }
+      .prediction-box {
+        padding: 14px;
+      }
+      .prediction-box .pred-char {
+        font-size: clamp(2.8rem, 18vw, 3.6rem);
+        min-height: 3.8rem;
+      }
+      .viz-link-box {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .copy-btn {
+        width: 100%;
+        padding: 9px 10px;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .card {
+        padding: 12px;
+      }
+      .section-title {
+        margin-top: 18px;
+      }
+      .tab {
+        font-size: 0.72rem;
+      }
+    }
   </style>
 </head>
 
@@ -276,10 +362,8 @@
     <p>Draw a digit — the neural network will predict it.</p>
   </header>
 
-  <!-- ── main card ───────────────────────────────────────────────── -->
   <div class="card">
 
-    <!-- two columns -->
     <div class="cols">
 
       <!-- left: drawing area -->
@@ -313,24 +397,39 @@
       <span class="no-output" id="noActImg">No activations yet.</span>
     </div>
 
-    <!-- 3D teaser -->
-    <div class="viz-teaser" style="cursor:pointer" onclick="openViz()">
-      🧊 <span>3D MLP Visualisation</span> — Click to open<br>
+    <!-- 3D viz teaser -->
+    <div class="viz-teaser">
+      🧊 <span>3D MLP Visualisation</span> — open the link below on any device<br>
+      <div class="viz-link-box">
+        <a id="vizLink" href="/viz" target="_blank">/viz</a>
+        <button class="copy-btn" id="copyVizBtn">Copy</button>
+      </div>
+      <div style="margin-top:8px;font-size:0.75rem;color:var(--muted)">
+        The viz page updates automatically after each prediction — no refresh needed.
+      </div>
     </div>
 
   </div>
 
   <script>
-  /* ══════════════════════════════════════════════════════════════════
-     CONFIG
-  ══════════════════════════════════════════════════════════════════ */
-  function openViz(){
-    const pred = document.getElementById('predChar').textContent;
-    const url  = `/viz${pred && pred!=='?' ? '?pred='+encodeURIComponent(pred) : ''}`;
-    window.open(url, '_blank');
-  }
+  /* ── API base: auto-detected from current page origin ───────────────────────
+     Works on localhost AND on any public server (Railway, ngrok, etc.)       */
+  const API_BASE = window.location.origin;
 
-  const API_BASE = "http://localhost:5000";
+  // Set the viz link to the full URL so it's easy to copy/share
+  const vizLinkEl = document.getElementById('vizLink');
+  vizLinkEl.href = `${API_BASE}/viz`;
+  vizLinkEl.textContent = `${API_BASE}/viz`;
+
+  document.getElementById('copyVizBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(`${API_BASE}/viz`).then(() => {
+      const btn = document.getElementById('copyVizBtn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
+  });
+
+  /* ── Canvas setup ──────────────────────────────────────────────────────── */
   const canvasEl = document.getElementById("drawCanvas");
   const ctx      = canvasEl.getContext("2d");
 
@@ -339,7 +438,7 @@
     const dpr     = window.devicePixelRatio || 1;
     canvasEl.width  = cssSize * dpr;
     canvasEl.height = cssSize * dpr;
-    ctx.setTransform(1,0,0,1,0,0); // avoid compounding scale on resize
+    ctx.setTransform(1,0,0,1,0,0);
     ctx.scale(dpr, dpr);
     clearCanvas();
   }
@@ -355,10 +454,10 @@
   window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
 
-  /* ── drawing state ─────────────────────────────────────────────── */
-  let drawing    = false;
+  /* ── Drawing ───────────────────────────────────────────────────────────── */
+  let drawing = false;
   let lastX = 0, lastY = 0;
-  const STROKE_W = 20;  // thick so it matches the MLP's training data scale
+  const STROKE_W = 20;
 
   function getPos(e) {
     const rect = canvasEl.getBoundingClientRect();
@@ -395,7 +494,7 @@
     lastX = p.x; lastY = p.y;
   }
 
-  function endDraw(e) { drawing = false; }
+  function endDraw() { drawing = false; }
 
   canvasEl.addEventListener("mousedown",  startDraw);
   canvasEl.addEventListener("mousemove",  moveDraw);
@@ -416,23 +515,20 @@
     outputImages = [];
   });
 
-  /* ══════════════════════════════════════════════════════════════════
-     PREDICT
-  ══════════════════════════════════════════════════════════════════ */
+  /* ── Predict ───────────────────────────────────────────────────────────── */
   let outputImages = [];
 
-  const predictBtn   = document.getElementById("predictBtn");
-  const predChar     = document.getElementById("predChar");
-  const spinner      = document.getElementById("spinner");
-  const statusMsg    = document.getElementById("statusMsg");
-  const layerTabs    = document.getElementById("layerTabs");
+  const predictBtn    = document.getElementById("predictBtn");
+  const predChar      = document.getElementById("predChar");
+  const spinner       = document.getElementById("spinner");
+  const statusMsg     = document.getElementById("statusMsg");
+  const layerTabs     = document.getElementById("layerTabs");
   const activationImg = document.getElementById("activationImg");
   const noActImg      = document.getElementById("noActImg");
 
   predictBtn.addEventListener("click", async () => {
     const b64 = canvasEl.toDataURL("image/png");
 
-    // UI: loading state
     predictBtn.disabled   = true;
     predChar.textContent  = "";
     spinner.style.display = "block";
@@ -452,29 +548,14 @@
         throw new Error(data.error || "Unknown server error");
       }
 
-      // show prediction
       predChar.textContent  = data.prediction;
       statusMsg.textContent = `Index: ${data.label_index}`;
 
-      // render layer tabs
       outputImages = data.outputs || [];
       renderTabs(outputImages);
 
-      // store result for the viz page to read
-      localStorage.setItem('mlp_last_result', JSON.stringify({
-        prediction:  data.prediction,
-        label_index: data.label_index,
-        probabilities: data.probabilities || [],
-        outputs:     data.outputs || [],
-        raw_pixels:  data.raw_pixels || [],
-        raw_h1:      data.raw_h1 || [],
-        raw_h2:      data.raw_h2 || [],
-        raw_h3:      data.raw_h3 || [],
-        ts:          Date.now(),
-      }));
-
-      // auto-open 3D viz with prediction char
-      setTimeout(() => window.open(`/viz?pred=${encodeURIComponent(data.prediction)}`, 'mlp_viz'), 500);
+      // The result is now stored on the server at /latest.
+      // viz.html on any device will pick it up automatically via polling.
 
     } catch (err) {
       predChar.textContent  = "✕";
@@ -486,9 +567,7 @@
     }
   });
 
-  /* ══════════════════════════════════════════════════════════════════
-     LAYER TABS
-  ══════════════════════════════════════════════════════════════════ */
+  /* ── Layer tabs ────────────────────────────────────────────────────────── */
   function renderTabs(images) {
     layerTabs.innerHTML = "";
     if (!images.length) {
@@ -512,13 +591,12 @@
   function showActivation(url) {
     activationImg.style.display = "none";
     noActImg.style.display = "block";
-
     const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
     activationImg.onload = () => {
       activationImg.style.display = "block";
       noActImg.style.display      = "none";
     };
-    activationImg.src = fullUrl + "?t=" + Date.now(); // bust cache
+    activationImg.src = fullUrl + "?t=" + Date.now();
   }
   </script>
 </body>
